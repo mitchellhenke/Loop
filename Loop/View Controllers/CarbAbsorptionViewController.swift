@@ -522,26 +522,17 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
             return
         }
 
-        if #available(iOS 12.0, *), editVC.originalCarbEntry == nil {
-            let interaction = INInteraction(intent: NewCarbEntryIntent(), response: nil)
-            interaction.donate { (error) in
-                if let error = error {
-                    os_log(.error, "Failed to donate intent: %{public}@", String(describing: error))
-                }
-            }
-            
-            deviceManager.loopManager.addCarbEntryAndRecommendBolus(updatedEntry, replacing: editVC.originalCarbEntry) { (result) in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let recommendation):
-                        if self.active && self.visible, let bolus = recommendation?.amount, bolus > 0 {
-                            self.performSegue(withIdentifier: BolusViewController.className, sender: recommendation)
-                        }
-                    case .failure(let error):
-                        // Ignore bolus wizard errors
-                        if error is CarbStore.CarbStoreError {
-                            self.presentAlertController(with: error)
-                        }
+        deviceManager.loopManager.addCarbEntryAndRecommendBolus(updatedEntry, replacing: editVC.originalCarbEntry) { (result) in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let recommendation):
+                    if self.active && self.visible, let bolus = recommendation?.amount, bolus > 0 {
+                        self.performSegue(withIdentifier: BolusViewController.className, sender: recommendation)
+                    }
+                case .failure(let error):
+                    // Ignore bolus wizard errors
+                    if error is CarbStore.CarbStoreError {
+                        self.presentAlertController(with: error)
                     }
                 }
             }
