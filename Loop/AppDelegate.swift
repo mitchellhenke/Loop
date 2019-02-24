@@ -10,6 +10,7 @@ import UIKit
 import Intents
 import LoopKit
 import UserNotifications
+import Sentry
 
 @UIApplicationMain
 final class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -25,6 +26,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+
+        do {
+            Client.shared = try Client(dsn: "")
+            try Client.shared?.startCrashHandler()
+        } catch let error {
+            print("\(error)")
+        }
+
         window?.tintColor = UIColor.tintColor
 
         NotificationManager.authorize(delegate: self)
