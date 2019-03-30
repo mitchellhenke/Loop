@@ -1,8 +1,8 @@
-github "LoopKit/LoopKit" "dev"
-github "LoopKit/CGMBLEKit" "dev"
-github "i-schuetz/SwiftCharts" == 0.6.3
-github "LoopKit/dexcom-share-client-swift" "dev"
-github "LoopKit/G4ShareSpy" "dev"
-github "ps2/rileylink_ios" "dev"
+github "mitchellhenke/LoopKit" "mitchell-rsilvers129-fpu"
+github "mitchellhenke/CGMBLEKit" "mitchell-rsilvers129-fpu"
+github "i-schuetz/SwiftCharts" == 0.6.5
+github "mitchellhenke/dexcom-share-client-swift" "mitchell-rsilvers129-fpu"
+github "mitchellhenke/G4ShareSpy" "mitchell-rsilvers129-fpu"
+github "mitchellhenke/rileylink_ios" "mitchell-rsilvers129-fpu"
 github "LoopKit/Amplitude-iOS" "decreepify"
 github "maxkonovalov/MKRingProgressView" ~> 2.2
