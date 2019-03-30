@@ -23,7 +23,7 @@ public struct LoopSettings: Equatable {
 
     public var retrospectiveCorrectionEnabled = true
 
-    var integralRetrospectiveCorrectionEnabled = true
+    public var integralRetrospectiveCorrectionEnabled = true
 
     /// The interval over which to aggregate changes in glucose for retrospective correction
     public let retrospectiveCorrectionGroupingInterval = TimeInterval(minutes: 30)
@@ -46,7 +46,8 @@ public struct LoopSettings: Equatable {
         maximumBasalRatePerHour: Double? = nil,
         maximumBolus: Double? = nil,
         suspendThreshold: GlucoseThreshold? = nil,
-        retrospectiveCorrectionEnabled: Bool = true
+        retrospectiveCorrectionEnabled: Bool = true,
+        integralRetrospectiveCorrectionEnabled: Bool = false
     ) {
         self.dosingEnabled = dosingEnabled
         self.glucoseTargetRangeSchedule = glucoseTargetRangeSchedule
@@ -54,6 +55,7 @@ public struct LoopSettings: Equatable {
         self.maximumBolus = maximumBolus
         self.suspendThreshold = suspendThreshold
         self.retrospectiveCorrectionEnabled = retrospectiveCorrectionEnabled
+        self.integralRetrospectiveCorrectionEnabled = integralRetrospectiveCorrectionEnabled
     }
 }
 
