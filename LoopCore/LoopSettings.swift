@@ -21,6 +21,10 @@ public struct LoopSettings: Equatable {
 
     public var suspendThreshold: GlucoseThreshold? = nil
 
+    public var fpuRatio: Double?
+
+    public var fpuDelay: Double?
+
     public var retrospectiveCorrectionEnabled = true
 
     public var integralRetrospectiveCorrectionEnabled = true
@@ -47,7 +51,9 @@ public struct LoopSettings: Equatable {
         maximumBolus: Double? = nil,
         suspendThreshold: GlucoseThreshold? = nil,
         retrospectiveCorrectionEnabled: Bool = true,
-        integralRetrospectiveCorrectionEnabled: Bool = false
+        integralRetrospectiveCorrectionEnabled: Bool = false,
+        fpuRatio: Double? = nil,
+        fpuDelay: Double? = nil
     ) {
         self.dosingEnabled = dosingEnabled
         self.glucoseTargetRangeSchedule = glucoseTargetRangeSchedule
@@ -56,6 +62,8 @@ public struct LoopSettings: Equatable {
         self.suspendThreshold = suspendThreshold
         self.retrospectiveCorrectionEnabled = retrospectiveCorrectionEnabled
         self.integralRetrospectiveCorrectionEnabled = integralRetrospectiveCorrectionEnabled
+        self.fpuRatio = fpuRatio
+        self.fpuDelay = fpuDelay
     }
 }
 
@@ -84,6 +92,10 @@ extension LoopSettings: RawRepresentable {
 
         self.maximumBolus = rawValue["maximumBolus"] as? Double
 
+        self.fpuRatio = rawValue["fpuRatio"] as? Double
+
+        self.fpuDelay = rawValue["fpuDelay"] as? Double
+
         if let rawThreshold = rawValue["minimumBGGuard"] as? GlucoseThreshold.RawValue {
             self.suspendThreshold = GlucoseThreshold(rawValue: rawThreshold)
         }
@@ -104,6 +116,8 @@ extension LoopSettings: RawRepresentable {
         raw["maximumBasalRatePerHour"] = maximumBasalRatePerHour
         raw["maximumBolus"] = maximumBolus
         raw["minimumBGGuard"] = suspendThreshold?.rawValue
+        raw["fpuRatio"] = fpuRatio
+        raw["fpuDelay"] = fpuDelay
 
         return raw
     }
