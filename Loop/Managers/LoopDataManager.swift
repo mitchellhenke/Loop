@@ -1014,6 +1014,7 @@ extension LoopDataManager {
             
             dosingRecommendation = predictedGlucose.recommendedAutomaticDose(
                 to: glucoseTargetRange,
+                at: predictedGlucose[0].startDate,
                 suspendThreshold: settings.suspendThreshold?.quantity,
                 sensitivity: insulinSensitivity,
                 model: model,
@@ -1028,6 +1029,7 @@ extension LoopDataManager {
         case .tempBasalOnly:
             let temp = predictedGlucose.recommendedTempBasal(
                 to: glucoseTargetRange,
+                at: predictedGlucose[0].startDate,
                 suspendThreshold: settings.suspendThreshold?.quantity,
                 sensitivity: insulinSensitivity,
                 model: model,
@@ -1079,6 +1081,11 @@ extension LoopDataManager {
 
         guard abs(recommendedDose.date.timeIntervalSinceNow) < TimeInterval(minutes: 5) else {
             completion(LoopError.recommendationExpired(date: recommendedDose.date))
+            return
+        }
+        
+        if case .suspended = basalDeliveryState {
+            completion(LoopError.pumpSuspended)
             return
         }
 
@@ -1332,7 +1339,7 @@ protocol LoopDataManagerDelegate: class {
     ///
     /// - Parameters:
     ///   - units: The recommended bolus in U
-    /// - Returns: a supported bolus volume in U. The volume returned should not be larger than the passed in rate.
+    /// - Returns: a supported bolus volume in U. The volume returned should be the nearest deliverable volume.
     func loopDataManager(_ manager: LoopDataManager, roundBolusVolume units: Double) -> Double
 }
 
