@@ -63,6 +63,18 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
         }
     }
 
+    fileprivate var quantityFat: HKQuantity? {
+        didSet {
+            updateContinueButtonEnabled()
+        }
+    }
+
+    fileprivate var quantityProtein: HKQuantity? {
+        didSet {
+            updateContinueButtonEnabled()
+        }
+    }
+
     fileprivate var date = Date() {
         didSet {
             updateContinueButtonEnabled()
@@ -104,7 +116,9 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
                 startDate: date,
                 foodType: foodType,
                 absorptionTime: absorptionTime,
-                externalID: originalCarbEntry?.externalID
+                externalID: originalCarbEntry?.externalID,
+                quantityFat: quantityFat,
+                quantityProtein: quantityProtein
             )
         } else {
             return nil
@@ -118,7 +132,7 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
     private(set) lazy var footerView: SetupTableFooterView = {
         let footerView = SetupTableFooterView(frame: .zero)
         footerView.primaryButton.addTarget(self, action: #selector(continueButtonPressed), for: .touchUpInside)
-        footerView.primaryButton.isEnabled = quantity != nil && quantity!.doubleValue(for: preferredUnit) > 0
+        footerView.primaryButton.isEnabled = quantity != nil && quantity!.doubleValue(for: preferredUnit) >= 0
         return footerView
     }()
 
@@ -185,11 +199,13 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
 
     fileprivate enum Row: Int {
         case value
+        case valueF
+        case valueP
         case date
         case foodType
         case absorptionTime
 
-        static let count = 4
+        static let count = 6
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -207,6 +223,28 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
 
             if let quantity = quantity {
                 cell.number = NSNumber(value: quantity.doubleValue(for: preferredUnit))
+            }
+            cell.textField.isEnabled = isSampleEditable
+            cell.unitLabel?.text = String(describing: preferredUnit)
+            cell.delegate = self
+
+            return cell
+        case .valueF:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "FatDecimalTextFieldTableViewCell") as! DecimalTextFieldTableViewCell
+
+                if let quantityFat = quantityFat {
+                    cell.number = NSNumber(value: quantityFat.doubleValue(for: preferredUnit))
+                }
+                cell.textField.isEnabled = isSampleEditable
+                cell.unitLabel?.text = String(describing: preferredUnit)
+                cell.delegate = self
+
+                return cell
+        case .valueP:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ProteinDecimalTextFieldTableViewCell") as! DecimalTextFieldTableViewCell
+
+            if let quantityProtein = quantityProtein {
+                cell.number = NSNumber(value: quantityProtein.doubleValue(for: preferredUnit))
             }
             cell.textField.isEnabled = isSampleEditable
             cell.unitLabel?.text = String(describing: preferredUnit)
@@ -275,7 +313,7 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
 
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         switch Row(rawValue: indexPath.row)! {
-        case .value, .date:
+        case .value, .valueF, .valueP, .date:
             break
         case .foodType:
             if usesCustomFoodType, shouldBeginEditingFoodType, let cell = cell as? TextFieldTableViewCell {
@@ -361,7 +399,7 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
             return false
         }
 
-        guard let quantity = quantity, quantity.doubleValue(for: preferredUnit) > 0 else { return false }
+        guard let quantity = quantity, quantity.doubleValue(for: preferredUnit) >= 0 else { return false }
         guard quantity.compare(maxQuantity) != .orderedDescending else {
             navigationDelegate.showMaxQuantityValidationWarning(for: self, maxQuantityGrams: maxQuantity.doubleValue(for: .gram()))
             return false
@@ -372,9 +410,12 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
 
     private func updateContinueButtonEnabled() {
         let hasValidQuantity = quantity != nil && quantity!.doubleValue(for: preferredUnit) > 0
+        let hasValidQuantityFat = quantityFat != nil && quantityFat!.doubleValue(for: preferredUnit) > 0
+        let hasValidQuantityProtein = quantityProtein != nil && quantityProtein!.doubleValue(for: preferredUnit) > 0
+
         let haveChangesBeenMade = updatedCarbEntry != nil
         
-        let readyToContinue = hasValidQuantity && haveChangesBeenMade
+        let readyToContinue = (hasValidQuantity || hasValidQuantityFat || hasValidQuantityProtein) && haveChangesBeenMade
         
         footerView.primaryButton.isEnabled = readyToContinue
         navigationItem.rightBarButtonItem?.isEnabled = readyToContinue
@@ -402,6 +443,18 @@ extension CarbEntryViewController: TextFieldTableViewCellDelegate {
             }
         case .foodType?:
             foodType = cell.textField.text
+        case .valueF?:
+            if let cell = cell as? DecimalTextFieldTableViewCell, let number = cell.number {
+                quantityFat = HKQuantity(unit: preferredUnit, doubleValue: number.doubleValue)
+            } else {
+                quantityFat = nil
+            }
+        case .valueP?:
+            if let cell = cell as? DecimalTextFieldTableViewCell, let number = cell.number {
+                quantityProtein = HKQuantity(unit: preferredUnit, doubleValue: number.doubleValue)
+            } else {
+                quantityProtein = nil
+            }
         default:
             break
         }
@@ -416,6 +469,18 @@ extension CarbEntryViewController: TextFieldTableViewCellDelegate {
                 quantity = HKQuantity(unit: preferredUnit, doubleValue: number.doubleValue)
             } else {
                 quantity = nil
+            }
+        case .valueF?:
+        if let cell = cell as? DecimalTextFieldTableViewCell, let number = cell.number {
+                quantityFat = HKQuantity(unit: preferredUnit, doubleValue: number.doubleValue)
+            } else {
+                quantityFat = nil
+            }
+        case .valueP?:
+            if let cell = cell as? DecimalTextFieldTableViewCell, let number = cell.number {
+                quantityProtein = HKQuantity(unit: preferredUnit, doubleValue: number.doubleValue)
+            } else {
+                quantityProtein = nil
             }
         default:
             break
